@@ -242,12 +242,26 @@
           grid-template-columns: 1fr;
         }
         .celda {
-          width: 28px;
-          height: 28px;
+          width: 34px;
+          height: 34px;
         }
         .celda input {
           font-size: 16px;
         }
+        .grid-wrap {
+          -webkit-overflow-scrolling: touch;
+        }
+        .scroll-aviso {
+          display: block;
+        }
+      }
+      .scroll-aviso {
+        display: none;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        color: #888;
+        text-align: center;
+        margin: 4px 0 0;
       }
     </style>
   </head>
@@ -281,6 +295,9 @@
       <div class="grid-wrap">
         <div class="grid" id="grid"></div>
       </div>
+      <p class="scroll-aviso">
+        ↔ Desliza el dedo sobre el tablero para ver más casillas
+      </p>
 
       <div class="clues-cols">
         <div class="clues-col">
@@ -1582,10 +1599,19 @@
                 div.appendChild(spanNum);
               }
               const input = document.createElement("input");
-              input.maxLength = 1;
+              // maxLength se deja holgado (no en 1) a propósito: en varios teclados
+              // de celular, si el cuadro ya tiene una letra y el limite es exactamente
+              // 1 caracter, el teléfono a veces bloquea el reemplazo silenciosamente y
+              // el juego nunca se entera del cambio. Con margen, el navegador siempre
+              // deja escribir, y el propio código recorta a una sola letra abajo.
+              input.maxLength = 4;
               input.dataset.r = r;
               input.dataset.c = c;
+              input.dataset.prev = "";
               input.autocomplete = "off";
+              input.autocapitalize = "characters";
+              input.setAttribute("autocorrect", "off");
+              input.spellcheck = false;
               input.inputMode = "text";
               div.appendChild(input);
               inputs[k] = input;
@@ -1596,11 +1622,27 @@
                 seleccionarCelda(r, c);
               });
               input.addEventListener("input", (e) => {
-                e.target.value = e.target.value
+                const anterior = input.dataset.prev || "";
+                const val = e.target.value
                   .toUpperCase()
                   .replace(/[^A-ZÑ]/g, "");
+                let nueva;
+                if (val.length <= 1) {
+                  nueva = val;
+                } else {
+                  // el telefono/navegador insertó la letra nueva junto a la que ya
+                  // había (antes o después, según dónde cayó el dedo); nos quedamos
+                  // con el carácter que no es el que ya teníamos
+                  const idxDistinto = val
+                    .split("")
+                    .findIndex((ch) => ch !== anterior);
+                  nueva =
+                    idxDistinto >= 0 ? val[idxDistinto] : val[val.length - 1];
+                }
+                e.target.value = nueva;
+                input.dataset.prev = nueva;
                 limpiarEstadoCelda(r, c);
-                if (e.target.value) moverSiguiente(r, c);
+                if (nueva) moverSiguiente(r, c);
                 actualizarResueltos();
                 verificarVictoria();
               });
@@ -1722,21 +1764,6 @@
 
       function manejarTeclado(e, r, c) {
         const k = clave(r, c);
-        const esLetra = e.key.length === 1 && /^[a-zA-ZñÑ]$/.test(e.key);
-        if (esLetra) {
-          // Se maneja aquí directamente (en vez de esperar el evento 'input') porque
-          // al sobrescribir una casilla que ya tiene una letra, el límite de 1
-          // carácter del cuadro a veces bloquea el reemplazo y el evento 'input'
-          // no llega a dispararse, dejando la letra sin avanzar a la siguiente casilla.
-          e.preventDefault();
-          const inp = inputs[k];
-          inp.value = e.key.toUpperCase();
-          limpiarEstadoCelda(r, c);
-          moverSiguiente(r, c);
-          actualizarResueltos();
-          verificarVictoria();
-          return;
-        }
         if (e.key === "Backspace") {
           if (!inputs[k].value) {
             e.preventDefault();
@@ -1747,6 +1774,7 @@
             if (idx > 0) {
               const [pr, pc] = palabraActual.celdas[idx - 1];
               inputs[clave(pr, pc)].value = "";
+              inputs[clave(pr, pc)].dataset.prev = "";
               limpiarEstadoCelda(pr, pc);
             }
           }
@@ -1831,6 +1859,7 @@
           const [r, c] = vacia;
           const k = clave(r, c);
           inputs[k].value = DATA.grid[k];
+          inputs[k].dataset.prev = DATA.grid[k];
           inputs[k].parentElement.classList.remove("incorrecta");
           inputs[k].parentElement.classList.add("correcta");
         }
@@ -1853,6 +1882,7 @@
       function reiniciar() {
         Object.values(inputs).forEach((inp) => {
           inp.value = "";
+          inp.dataset.prev = "";
           inp.parentElement.classList.remove("correcta", "incorrecta");
         });
         document
