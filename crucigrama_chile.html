@@ -1,0 +1,1608 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crucigrama de Chile</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Georgia, "Times New Roman", serif;
+        background: #f0ece3;
+        color: #1a1a1a;
+        padding: 1.5rem 1rem 3rem;
+      }
+
+      .contenedor {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .cabecera {
+        text-align: center;
+        margin-bottom: 1.25rem;
+      }
+      .cabecera h1 {
+        font-size: 30px;
+        font-weight: normal;
+        color: #2c2c2c;
+      }
+      .cabecera p {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        color: #666;
+        margin-top: 4px;
+      }
+
+      .panel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 1rem;
+      }
+      .btn {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        padding: 12px 22px;
+        border-radius: 10px;
+        border: 1.5px solid #aaa;
+        background: #fff;
+        color: #1a1a1a;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .btn:hover {
+        background: #f0ede8;
+      }
+      .btn.primario {
+        background: #2a7a5c;
+        border-color: #2a7a5c;
+        color: #fff;
+      }
+      .btn.primario:hover {
+        background: #225f48;
+      }
+      .btn.nuevo {
+        background: #8a5000;
+        border-color: #8a5000;
+        color: #fff;
+      }
+      .btn.nuevo:hover {
+        background: #6e4000;
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+
+      .clue-banner {
+        background: #fff3d6;
+        border: 1.5px solid #e0b04a;
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 1rem;
+        font-size: 19px;
+        line-height: 1.4;
+        min-height: 28px;
+        text-align: center;
+      }
+      .clue-banner b {
+        font-family: Arial, sans-serif;
+        color: #8a5000;
+      }
+
+      .info-tamano {
+        text-align: center;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        color: #888;
+        margin-bottom: 0.75rem;
+      }
+
+      .grid-wrap {
+        overflow-x: auto;
+        overflow-y: hidden;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 1.5rem;
+      }
+      .grid {
+        display: grid;
+        gap: 2px;
+        width: max-content;
+        margin: 0 auto;
+      }
+      .celda {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        background: #d8d2c2;
+        border-radius: 3px;
+      }
+      .celda.blanca {
+        background: #fff;
+        border: 1px solid #b9b3a3;
+      }
+      .celda .num {
+        position: absolute;
+        top: 1px;
+        left: 2px;
+        font-family: Arial, sans-serif;
+        font-size: 9px;
+        color: #777;
+        pointer-events: none;
+        line-height: 1;
+      }
+      .celda input {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: transparent;
+        text-align: center;
+        font-family: Georgia, serif;
+        font-size: 18px;
+        font-weight: bold;
+        color: #1a1a1a;
+        text-transform: uppercase;
+        padding: 0;
+        border-radius: 3px;
+        outline: none;
+        caret-color: transparent;
+      }
+      .celda.activa {
+        background: #ffe9a8;
+      }
+      .celda.activa input {
+        background: #ffe9a8;
+      }
+      .celda.foco input {
+        background: #ffcf4d;
+      }
+      .celda.correcta input {
+        background: #c8e6c9;
+        color: #1a4a2e;
+      }
+      .celda.incorrecta input {
+        background: #ffe0b2;
+      }
+
+      .clues-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .clues-col h2 {
+        font-size: 20px;
+        font-weight: normal;
+        margin-bottom: 10px;
+        border-bottom: 2px solid #2a7a5c;
+        padding-bottom: 6px;
+        color: #2a7a5c;
+      }
+      .clue-item {
+        font-family: Arial, sans-serif;
+        font-size: 15px;
+        line-height: 1.4;
+        padding: 8px 6px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 2px;
+      }
+      .clue-item:hover {
+        background: #f0ede8;
+      }
+      .clue-item.resuelto {
+        color: #1a6b45;
+        text-decoration: line-through;
+        opacity: 0.65;
+      }
+      .clue-item.seleccionado {
+        background: #ffe9a8;
+      }
+      .clue-item b {
+        font-family: Georgia, serif;
+      }
+
+      .resultado-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 14px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        display: none;
+        margin-top: 1.5rem;
+      }
+      .resultado-card.show {
+        display: block;
+      }
+      .resultado-card h2 {
+        font-size: 26px;
+        font-weight: normal;
+        margin-bottom: 10px;
+      }
+      .resultado-card p {
+        font-family: Arial, sans-serif;
+        font-size: 17px;
+        color: #555;
+      }
+
+      @media (max-width: 700px) {
+        .clues-cols {
+          grid-template-columns: 1fr;
+        }
+        .celda {
+          width: 28px;
+          height: 28px;
+        }
+        .celda input {
+          font-size: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="contenedor">
+      <div class="cabecera">
+        <h1>Crucigrama de Chile</h1>
+        <p>Palabras de todos los días y del lenguaje chileno</p>
+      </div>
+
+      <div class="panel">
+        <button class="btn primario" onclick="revisarTodo()">
+          Revisar respuestas
+        </button>
+        <button class="btn" onclick="darPista()">Pista</button>
+        <button class="btn" onclick="reiniciar()">Borrar respuestas</button>
+        <button
+          class="btn nuevo"
+          id="btn-nuevo-puzzle"
+          onclick="generarPuzzleNuevo()"
+        >
+          Generar puzzle nuevo
+        </button>
+      </div>
+
+      <div class="info-tamano" id="info-tamano"></div>
+      <div class="clue-banner" id="clue-banner">
+        Toque una casilla o una pista para comenzar
+      </div>
+
+      <div class="grid-wrap">
+        <div class="grid" id="grid"></div>
+      </div>
+
+      <div class="clues-cols">
+        <div class="clues-col">
+          <h2>Horizontales →</h2>
+          <div id="lista-h"></div>
+        </div>
+        <div class="clues-col">
+          <h2>Verticales ↓</h2>
+          <div id="lista-v"></div>
+        </div>
+      </div>
+
+      <div class="resultado-card" id="resultado">
+        <div style="font-size: 48px; margin-bottom: 10px">🎉</div>
+        <h2>¡Felicitaciones!</h2>
+        <p>Completó todo el crucigrama correctamente.</p>
+      </div>
+    </div>
+
+    <script>
+      /* ============================================================
+   PUZZLE INICIAL (curado a mano, validado sin conflictos)
+   ============================================================ */
+      const DATA_INICIAL = {
+        filas: 31,
+        cols: 21,
+        grid: {
+          "7,2": "E",
+          "7,3": "M",
+          "7,4": "P",
+          "7,5": "A",
+          "7,6": "N",
+          "7,7": "A",
+          "7,8": "D",
+          "7,9": "A",
+          "8,2": "S",
+          "9,2": "T",
+          "10,2": "R",
+          "11,2": "E",
+          "12,2": "L",
+          "13,2": "L",
+          "14,2": "A",
+          "8,5": "R",
+          "9,5": "B",
+          "10,5": "O",
+          "11,5": "L",
+          "4,8": "M",
+          "5,8": "U",
+          "6,8": "N",
+          "8,8": "O",
+          "5,7": "D",
+          "5,9": "L",
+          "5,10": "C",
+          "5,11": "E",
+          "14,3": "M",
+          "14,4": "I",
+          "14,5": "G",
+          "14,6": "O",
+          "12,0": "S",
+          "12,1": "A",
+          "1,11": "C",
+          "2,11": "A",
+          "3,11": "Z",
+          "4,11": "U",
+          "6,11": "L",
+          "7,11": "A",
+          "1,12": "O",
+          "1,13": "N",
+          "1,14": "D",
+          "1,15": "O",
+          "1,16": "R",
+          "10,4": "C",
+          "10,6": "P",
+          "10,7": "I",
+          "10,8": "H",
+          "10,9": "U",
+          "10,10": "E",
+          "13,6": "V",
+          "15,6": "L",
+          "16,6": "C",
+          "17,6": "A",
+          "18,6": "N",
+          "16,7": "U",
+          "16,8": "E",
+          "16,9": "C",
+          "16,10": "A",
+          "9,9": "H",
+          "11,9": "E",
+          "12,9": "M",
+          "13,9": "U",
+          "14,9": "L",
+          "7,12": "N",
+          "7,13": "D",
+          "7,14": "E",
+          "7,15": "S",
+          "15,10": "P",
+          "17,10": "T",
+          "18,10": "A",
+          "19,10": "G",
+          "20,10": "O",
+          "21,10": "N",
+          "22,10": "I",
+          "23,10": "A",
+          "15,3": "E",
+          "16,3": "R",
+          "17,3": "C",
+          "18,3": "A",
+          "19,3": "D",
+          "20,3": "O",
+          "17,8": "S",
+          "18,8": "C",
+          "19,8": "U",
+          "20,8": "E",
+          "21,8": "L",
+          "22,8": "A",
+          "18,11": "B",
+          "18,12": "U",
+          "18,13": "E",
+          "18,14": "L",
+          "18,15": "O",
+          "23,9": "F",
+          "23,11": "M",
+          "23,12": "I",
+          "23,13": "L",
+          "23,14": "I",
+          "23,15": "A",
+          "22,15": "J",
+          "24,15": "R",
+          "25,15": "D",
+          "26,15": "I",
+          "27,15": "N",
+          "6,14": "V",
+          "8,14": "N",
+          "9,14": "T",
+          "10,14": "A",
+          "11,14": "N",
+          "12,14": "A",
+          "0,15": "C",
+          "2,15": "C",
+          "3,15": "I",
+          "4,15": "N",
+          "5,15": "A",
+          "9,15": "R",
+          "9,16": "E",
+          "9,17": "N",
+          "24,16": "I",
+          "24,17": "O",
+          "12,10": "A",
+          "12,11": "R",
+          "13,0": "O",
+          "14,0": "L",
+          "21,9": "U",
+          "21,11": "A",
+          "24,9": "L",
+          "25,9": "O",
+          "26,9": "R",
+          "15,11": "E",
+          "15,12": "B",
+          "15,13": "R",
+          "15,14": "E",
+          "24,11": "O",
+          "25,11": "T",
+          "26,11": "E",
+          "26,13": "G",
+          "26,14": "U",
+          "26,16": "T",
+          "26,17": "A",
+          "26,18": "R",
+          "26,19": "R",
+          "26,20": "A",
+          "12,13": "M",
+          "12,15": "E",
+          "12,16": "S",
+          "12,17": "T",
+          "12,18": "R",
+          "12,19": "O",
+          "2,13": "I",
+          "3,13": "E",
+          "4,13": "T",
+          "5,13": "O",
+          "5,16": "G",
+          "5,17": "U",
+          "5,18": "A",
+          "17,14": "P",
+          "19,14": "A",
+          "20,14": "Z",
+          "21,14": "A",
+          "25,20": "C",
+          "27,20": "M",
+          "28,20": "I",
+          "29,20": "N",
+          "30,20": "O",
+          "3,16": "S",
+          "3,17": "L",
+          "3,18": "A",
+          "10,18": "F",
+          "11,18": "E",
+          "13,18": "I",
+          "14,18": "A",
+          "18,2": "P",
+          "18,4": "N",
+        },
+        numeros: {
+          "0,15": 1,
+          "1,11": 2,
+          "1,13": 3,
+          "3,15": 4,
+          "4,8": 5,
+          "5,7": 6,
+          "5,15": 7,
+          "6,14": 8,
+          "7,2": 9,
+          "7,5": 10,
+          "7,11": 11,
+          "9,9": 12,
+          "9,14": 13,
+          "10,4": 14,
+          "10,18": 15,
+          "12,0": 16,
+          "12,9": 17,
+          "12,13": 18,
+          "13,6": 19,
+          "14,2": 20,
+          "14,3": 21,
+          "15,10": 22,
+          "16,6": 23,
+          "16,8": 24,
+          "17,14": 25,
+          "18,2": 26,
+          "18,10": 27,
+          "21,8": 28,
+          "22,15": 29,
+          "23,9": 30,
+          "23,11": 31,
+          "24,15": 32,
+          "25,20": 33,
+          "26,13": 34,
+        },
+        clues_h: [
+          {
+            num: 2,
+            texto: "CONDOR",
+            fila: 1,
+            col: 11,
+            dir: "H",
+            pista: "Ave grande que vuela sobre la cordillera",
+            len: 6,
+          },
+          {
+            num: 4,
+            texto: "ISLA",
+            fila: 3,
+            col: 15,
+            dir: "H",
+            pista: "Tierra rodeada de agua por todos lados",
+            len: 4,
+          },
+          {
+            num: 6,
+            texto: "DULCE",
+            fila: 5,
+            col: 7,
+            dir: "H",
+            pista: "Sabor del azúcar y la miel",
+            len: 5,
+          },
+          {
+            num: 7,
+            texto: "AGUA",
+            fila: 5,
+            col: 15,
+            dir: "H",
+            pista: "Líquido esencial para vivir",
+            len: 4,
+          },
+          {
+            num: 9,
+            texto: "EMPANADA",
+            fila: 7,
+            col: 2,
+            dir: "H",
+            pista: "Comida típica rellena, al horno o frita",
+            len: 8,
+          },
+          {
+            num: 11,
+            texto: "ANDES",
+            fila: 7,
+            col: 11,
+            dir: "H",
+            pista: "Cordillera que recorre gran parte de Sudamérica",
+            len: 5,
+          },
+          {
+            num: 13,
+            texto: "TREN",
+            fila: 9,
+            col: 14,
+            dir: "H",
+            pista: "Transporte que va sobre rieles",
+            len: 4,
+          },
+          {
+            num: 14,
+            texto: "COPIHUE",
+            fila: 10,
+            col: 4,
+            dir: "H",
+            pista: "Flor nacional de Chile, roja o blanca",
+            len: 7,
+          },
+          {
+            num: 16,
+            texto: "SAL",
+            fila: 12,
+            col: 0,
+            dir: "H",
+            pista: "Mineral blanco que se usa para sazonar",
+            len: 3,
+          },
+          {
+            num: 17,
+            texto: "MAR",
+            fila: 12,
+            col: 9,
+            dir: "H",
+            pista: "Gran extensión de agua salada",
+            len: 3,
+          },
+          {
+            num: 18,
+            texto: "MAESTRO",
+            fila: 12,
+            col: 13,
+            dir: "H",
+            pista: "Persona que enseña en la escuela",
+            len: 7,
+          },
+          {
+            num: 20,
+            texto: "AMIGO",
+            fila: 14,
+            col: 2,
+            dir: "H",
+            pista: "Persona de confianza, no es familiar",
+            len: 5,
+          },
+          {
+            num: 22,
+            texto: "PEBRE",
+            fila: 15,
+            col: 10,
+            dir: "H",
+            pista: "Salsa de tomate, cebolla, cilantro y ají",
+            len: 5,
+          },
+          {
+            num: 23,
+            texto: "CUECA",
+            fila: 16,
+            col: 6,
+            dir: "H",
+            pista: "Baile tradicional con pañuelo",
+            len: 5,
+          },
+          {
+            num: 26,
+            texto: "PAN",
+            fila: 18,
+            col: 2,
+            dir: "H",
+            pista: "Se hace con harina y se come en el desayuno",
+            len: 3,
+          },
+          {
+            num: 27,
+            texto: "ABUELO",
+            fila: 18,
+            col: 10,
+            dir: "H",
+            pista: "Padre de uno de los padres",
+            len: 6,
+          },
+          {
+            num: 28,
+            texto: "LUNA",
+            fila: 21,
+            col: 8,
+            dir: "H",
+            pista: "Satélite natural de la Tierra",
+            len: 4,
+          },
+          {
+            num: 30,
+            texto: "FAMILIA",
+            fila: 23,
+            col: 9,
+            dir: "H",
+            pista: "Grupo formado por padres, hijos y parientes",
+            len: 7,
+          },
+          {
+            num: 32,
+            texto: "RIO",
+            fila: 24,
+            col: 15,
+            dir: "H",
+            pista: "Corriente de agua que va hacia el mar",
+            len: 3,
+          },
+          {
+            num: 34,
+            texto: "GUITARRA",
+            fila: 26,
+            col: 13,
+            dir: "H",
+            pista: "Instrumento musical de cuerdas",
+            len: 8,
+          },
+        ],
+        clues_v: [
+          {
+            num: 1,
+            texto: "COCINA",
+            fila: 0,
+            col: 15,
+            dir: "V",
+            pista: "Lugar de la casa donde se preparan las comidas",
+            len: 6,
+          },
+          {
+            num: 2,
+            texto: "CAZUELA",
+            fila: 1,
+            col: 11,
+            dir: "V",
+            pista: "Comida de olla con carne, papa y verduras",
+            len: 7,
+          },
+          {
+            num: 3,
+            texto: "NIETO",
+            fila: 1,
+            col: 13,
+            dir: "V",
+            pista: "Hijo de un hijo",
+            len: 5,
+          },
+          {
+            num: 5,
+            texto: "MUNDO",
+            fila: 4,
+            col: 8,
+            dir: "V",
+            pista: "Todo lo que existe, la Tierra y sus países",
+            len: 5,
+          },
+          {
+            num: 8,
+            texto: "VENTANA",
+            fila: 6,
+            col: 14,
+            dir: "V",
+            pista: "Abertura en la pared para que entre luz",
+            len: 7,
+          },
+          {
+            num: 9,
+            texto: "ESTRELLA",
+            fila: 7,
+            col: 2,
+            dir: "V",
+            pista: "Brilla en el cielo durante la noche",
+            len: 8,
+          },
+          {
+            num: 10,
+            texto: "ARBOL",
+            fila: 7,
+            col: 5,
+            dir: "V",
+            pista: "Tiene tronco, ramas y hojas",
+            len: 5,
+          },
+          {
+            num: 12,
+            texto: "HUEMUL",
+            fila: 9,
+            col: 9,
+            dir: "V",
+            pista: "Ciervo de la cordillera, símbolo de Chile",
+            len: 6,
+          },
+          {
+            num: 15,
+            texto: "FERIA",
+            fila: 10,
+            col: 18,
+            dir: "V",
+            pista: "Mercado al aire libre, con puestos de comida",
+            len: 5,
+          },
+          {
+            num: 16,
+            texto: "SOL",
+            fila: 12,
+            col: 0,
+            dir: "V",
+            pista: "Estrella que ilumina durante el día",
+            len: 3,
+          },
+          {
+            num: 19,
+            texto: "VOLCAN",
+            fila: 13,
+            col: 6,
+            dir: "V",
+            pista: "Montaña que puede hacer erupción",
+            len: 6,
+          },
+          {
+            num: 21,
+            texto: "MERCADO",
+            fila: 14,
+            col: 3,
+            dir: "V",
+            pista: "Lugar donde se venden frutas y verduras",
+            len: 7,
+          },
+          {
+            num: 22,
+            texto: "PATAGONIA",
+            fila: 15,
+            col: 10,
+            dir: "V",
+            pista: "Región de paisajes helados en el sur",
+            len: 9,
+          },
+          {
+            num: 24,
+            texto: "ESCUELA",
+            fila: 16,
+            col: 8,
+            dir: "V",
+            pista: "Lugar donde se enseña a leer y escribir",
+            len: 7,
+          },
+          {
+            num: 25,
+            texto: "PLAZA",
+            fila: 17,
+            col: 14,
+            dir: "V",
+            pista: "Espacio público central de un pueblo",
+            len: 5,
+          },
+          {
+            num: 29,
+            texto: "JARDIN",
+            fila: 22,
+            col: 15,
+            dir: "V",
+            pista: "Lugar con plantas y flores alrededor de una casa",
+            len: 6,
+          },
+          {
+            num: 30,
+            texto: "FLOR",
+            fila: 23,
+            col: 9,
+            dir: "V",
+            pista: "Parte bonita y colorida de una planta",
+            len: 4,
+          },
+          {
+            num: 31,
+            texto: "MOTE",
+            fila: 23,
+            col: 11,
+            dir: "V",
+            pista: "Trigo cocido, se toma con huesillo",
+            len: 4,
+          },
+          {
+            num: 33,
+            texto: "CAMINO",
+            fila: 25,
+            col: 20,
+            dir: "V",
+            pista: "Ruta o sendero para llegar a un lugar",
+            len: 6,
+          },
+        ],
+      };
+
+      /* ============================================================
+   BANCO DE PALABRAS para generar puzzles aleatorios nuevos
+   (sin tildes en las letras de la grilla; las pistas sí llevan tildes)
+   ============================================================ */
+      const BANCO_PALABRAS = [
+        ["EMPANADA", "Comida típica rellena, al horno o frita"],
+        ["CAZUELA", "Comida de olla con carne, papa y verduras"],
+        ["PEBRE", "Salsa de tomate, cebolla, cilantro y ají"],
+        ["MOTE", "Trigo cocido, se toma con huesillo"],
+        ["PAN", "Se hace con harina y se come en el desayuno"],
+        ["SAL", "Mineral blanco que se usa para sazonar"],
+        ["AGUA", "Líquido esencial para vivir"],
+        ["DULCE", "Sabor del azúcar y la miel"],
+        ["QUESO", "Se hace con leche cuajada"],
+        ["LECHE", "Bebida blanca que dan las vacas"],
+        ["HUEVO", "Lo pone la gallina, se puede freír"],
+        ["ARROZ", "Cereal blanco, base de muchas comidas"],
+        ["POROTO", "Legumbre chica, se cocina en guisos"],
+        ["MANZANA", "Fruta roja o verde, muy común"],
+        ["PLATANO", "Fruta amarilla y alargada"],
+        ["NARANJA", "Fruta cítrica de color anaranjado"],
+        ["LIMON", "Fruta ácida, verde o amarilla"],
+        ["CAFE", "Bebida caliente y oscura del desayuno"],
+        ["AZUCAR", "Se usa para endulzar el café o el té"],
+        ["HARINA", "Se usa para hacer pan y tortas"],
+        ["TORTA", "Postre dulce para cumpleaños"],
+        ["GALLETA", "Dulce pequeño y crujiente"],
+        ["ENSALADA", "Plato de verduras crudas o cocidas"],
+        ["CARNE", "Alimento que viene de los animales"],
+        ["POLLO", "Ave que se come frita o al horno"],
+        ["PESCADO", "Animal que vive en el agua y se come"],
+        ["VINO", "Bebida hecha de uvas fermentadas"],
+        ["JUGO", "Bebida que se saca de las frutas"],
+        ["MIEL", "Dulce que hacen las abejas"],
+        ["SOPA", "Comida líquida y caliente"],
+        ["ESTRELLA", "Brilla en el cielo durante la noche"],
+        ["SOL", "Estrella que ilumina durante el día"],
+        ["LUNA", "Satélite natural de la Tierra"],
+        ["FLOR", "Parte bonita y colorida de una planta"],
+        ["ARBOL", "Tiene tronco, ramas y hojas"],
+        ["MUNDO", "Todo lo que existe, la Tierra y sus países"],
+        ["CONDOR", "Ave grande que vuela sobre la cordillera"],
+        ["COPIHUE", "Flor nacional de Chile, roja o blanca"],
+        ["VOLCAN", "Montaña que puede hacer erupción"],
+        ["HUEMUL", "Ciervo de la cordillera, símbolo de Chile"],
+        ["ANDES", "Cordillera que recorre gran parte de Sudamérica"],
+        ["PATAGONIA", "Región de paisajes helados en el sur"],
+        ["ISLA", "Tierra rodeada de agua por todos lados"],
+        ["RIO", "Corriente de agua que va hacia el mar"],
+        ["MAR", "Gran extensión de agua salada"],
+        ["NUBE", "Se ve blanca o gris en el cielo"],
+        ["LLUVIA", "Cae del cielo cuando está nublado"],
+        ["VIENTO", "Se siente pero no se ve, mueve las hojas"],
+        ["NIEVE", "Blanca y fría, cae en la cordillera"],
+        ["HIELO", "Agua congelada"],
+        ["BOSQUE", "Lugar con muchos árboles"],
+        ["MONTANA", "Elevación grande de tierra"],
+        ["VALLE", "Terreno bajo entre montañas"],
+        ["LAGO", "Gran cantidad de agua rodeada de tierra"],
+        ["PLAYA", "Orilla del mar con arena"],
+        ["ARENA", "Se encuentra en la playa o el desierto"],
+        ["PIEDRA", "Objeto duro que se encuentra en el suelo"],
+        ["TIERRA", "Planeta donde vivimos"],
+        ["CIELO", "Se ve azul de día y con estrellas de noche"],
+        ["PERRO", "Animal fiel, el mejor amigo del hombre"],
+        ["GATO", "Animal doméstico que maúlla"],
+        ["CABALLO", "Animal grande que se puede montar"],
+        ["VACA", "Animal que da leche"],
+        ["OVEJA", "Animal que da lana"],
+        ["GALLINA", "Ave de corral que pone huevos"],
+        ["PATO", "Ave que nada en lagos y esteros"],
+        ["RATON", "Animal pequeño y gris, le teme al gato"],
+        ["CONEJO", "Animal de orejas largas, salta"],
+        ["ZORRO", "Animal astuto de cola peluda"],
+        ["PUMA", "Felino grande de la cordillera"],
+        ["BALLENA", "Animal marino gigante"],
+        ["DELFIN", "Animal marino inteligente y juguetón"],
+        ["ARANA", "Animal de ocho patas que teje telas"],
+        ["MARIPOSA", "Insecto de alas coloridas"],
+        ["ABEJA", "Insecto que hace miel"],
+        ["HORMIGA", "Insecto pequeño y muy trabajador"],
+        ["AMIGO", "Persona de confianza, no es familiar"],
+        ["NIETO", "Hijo de un hijo"],
+        ["MAESTRO", "Persona que enseña en la escuela"],
+        ["ABUELO", "Padre de uno de los padres"],
+        ["FAMILIA", "Grupo formado por padres, hijos y parientes"],
+        ["PAPA", "Padre de familia"],
+        ["MAMA", "Madre de familia"],
+        ["HIJO", "Varón nacido de los padres"],
+        ["HIJA", "Mujer nacida de los padres"],
+        ["HERMANO", "Varón con los mismos padres"],
+        ["HERMANA", "Mujer con los mismos padres"],
+        ["PRIMO", "Hijo de un tío o tía"],
+        ["TIO", "Hermano de la mamá o el papá"],
+        ["SOBRINO", "Hijo de un hermano o hermana"],
+        ["VECINO", "Persona que vive cerca"],
+        ["PROFESOR", "Persona que enseña en un colegio"],
+        ["ALUMNO", "Persona que estudia en la escuela"],
+        ["DOCTOR", "Persona que cura enfermedades"],
+        ["ENFERMERA", "Cuida a los pacientes en el hospital"],
+        ["BOMBERO", "Apaga incendios"],
+        ["PANADERO", "Hace pan todos los días"],
+        ["COCINERO", "Prepara las comidas"],
+        ["JARDIN", "Lugar con plantas y flores alrededor de una casa"],
+        ["VENTANA", "Abertura en la pared para que entre luz"],
+        ["COCINA", "Lugar de la casa donde se preparan las comidas"],
+        ["PLAZA", "Espacio público central de un pueblo"],
+        ["CAMINO", "Ruta o sendero para llegar a un lugar"],
+        ["MESA", "Mueble donde se come o se trabaja"],
+        ["SILLA", "Mueble para sentarse"],
+        ["CAMA", "Mueble donde se duerme"],
+        ["PUERTA", "Se abre para entrar a una casa"],
+        ["TECHO", "Parte de arriba de una casa"],
+        ["ESPEJO", "Se usa para verse la cara"],
+        ["RELOJ", "Muestra la hora"],
+        ["LIBRO", "Se lee, tiene muchas hojas y una tapa"],
+        ["CUADERNO", "Se usa para escribir en la escuela"],
+        ["LAPIZ", "Se usa para escribir o dibujar"],
+        ["TIJERA", "Sirve para cortar papel o tela"],
+        ["MALETA", "Se usa para guardar ropa en un viaje"],
+        ["PARAGUAS", "Protege de la lluvia"],
+        ["ZAPATO", "Se usa en los pies"],
+        ["SOMBRERO", "Se usa en la cabeza para el sol"],
+        ["BUFANDA", "Abriga el cuello en invierno"],
+        ["GUANTE", "Abriga las manos en invierno"],
+        ["MERCADO", "Lugar donde se venden frutas y verduras"],
+        ["ESCUELA", "Lugar donde se enseña a leer y escribir"],
+        ["FERIA", "Mercado al aire libre, con puestos de comida"],
+        ["CIUDAD", "Lugar grande con muchas calles y edificios"],
+        ["PUEBLO", "Lugar pequeño, más tranquilo que la ciudad"],
+        ["CALLE", "Por donde pasan autos y personas"],
+        ["PUENTE", "Permite cruzar un río"],
+        ["HOSPITAL", "Lugar donde se atiende a los enfermos"],
+        ["IGLESIA", "Lugar donde se reza"],
+        ["MUSEO", "Lugar donde se exhiben obras y objetos antiguos"],
+        ["TEATRO", "Lugar donde se presentan obras en vivo"],
+        ["PARQUE", "Lugar con árboles y juegos al aire libre"],
+        ["DESIERTO", "Zona muy árida, casi sin lluvia"],
+        ["CORDILLERA", "Cadena de montañas"],
+        ["COSTA", "Zona de tierra junto al mar"],
+        ["PUERTO", "Lugar donde llegan y salen los barcos"],
+        ["TREN", "Transporte que va sobre rieles"],
+        ["AUTO", "Vehículo con cuatro ruedas para el transporte"],
+        ["BICICLETA", "Vehículo de dos ruedas que se pedalea"],
+        ["BARCO", "Vehículo que navega por el mar"],
+        ["AVION", "Vehículo que vuela por el cielo"],
+        ["CAMION", "Vehículo grande para transportar carga"],
+        ["MOTO", "Vehículo de dos ruedas con motor"],
+        ["CUECA", "Baile tradicional con pañuelo"],
+        ["GUITARRA", "Instrumento musical de cuerdas"],
+        ["ROJO", "Color de las manzanas maduras"],
+        ["AZUL", "Color del cielo despejado"],
+        ["VERDE", "Color de las hojas de los árboles"],
+        ["AMARILLO", "Color del sol y del plátano"],
+        ["BLANCO", "Color de la nieve"],
+        ["NEGRO", "Color de la noche sin estrellas"],
+        ["MORADO", "Color de la uva"],
+        ["ROSADO", "Color muy suave, mezcla de rojo y blanco"],
+      ];
+
+      /* ============================================================
+   MOTOR DEL CRUCIGRAMA (compartido por el puzzle inicial y los generados)
+   ============================================================ */
+
+      function celdasDe(w) {
+        const cs = [];
+        for (let i = 0; i < w.len; i++) {
+          const r = w.fila + (w.dir === "V" ? i : 0);
+          const c = w.col + (w.dir === "H" ? i : 0);
+          cs.push([r, c]);
+        }
+        return cs;
+      }
+
+      function clave(r, c) {
+        return r + "," + c;
+      }
+
+      /* ---- generador aleatorio ---- */
+      function barajar(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      class ConstructorCrucigrama {
+        constructor() {
+          this.grid = {}; // "r,c" -> letra
+          this.dirEn = {}; // "r,c" -> Set de direcciones
+          this.words = []; // {texto,fila,col,dir,pista}
+        }
+
+        cabe(word, r, c, direction) {
+          const n = word.length;
+          const antes = direction === "H" ? clave(r, c - 1) : clave(r - 1, c);
+          const despues = direction === "H" ? clave(r, c + n) : clave(r + n, c);
+          if (this.grid[antes] !== undefined) return false;
+          if (this.grid[despues] !== undefined) return false;
+
+          for (let i = 0; i < n; i++) {
+            const rr = r + (direction === "V" ? i : 0);
+            const cc = c + (direction === "H" ? i : 0);
+            const k = clave(rr, cc);
+            const ch = word[i];
+            if (this.grid[k] !== undefined) {
+              if (this.grid[k] !== ch) return false;
+              if (this.dirEn[k] && this.dirEn[k].has(direction)) return false;
+            } else {
+              if (direction === "H") {
+                if (this.grid[clave(rr - 1, cc)] !== undefined) return false;
+                if (this.grid[clave(rr + 1, cc)] !== undefined) return false;
+              } else {
+                if (this.grid[clave(rr, cc - 1)] !== undefined) return false;
+                if (this.grid[clave(rr, cc + 1)] !== undefined) return false;
+              }
+            }
+          }
+          return true;
+        }
+
+        colocar(word, r, c, direction, pista) {
+          const n = word.length;
+          for (let i = 0; i < n; i++) {
+            const rr = r + (direction === "V" ? i : 0);
+            const cc = c + (direction === "H" ? i : 0);
+            const k = clave(rr, cc);
+            this.grid[k] = word[i];
+            if (!this.dirEn[k]) this.dirEn[k] = new Set();
+            this.dirEn[k].add(direction);
+          }
+          this.words.push({
+            texto: word,
+            fila: r,
+            col: c,
+            dir: direction,
+            pista: pista,
+            len: n,
+          });
+        }
+
+        intentarColocarAuto(word, pista) {
+          const candidatos = [];
+          for (let i = 0; i < word.length; i++) {
+            const ch = word[i];
+            for (const k in this.grid) {
+              if (this.grid[k] !== ch) continue;
+              const [er, ec] = k.split(",").map(Number);
+              const dirsExistentes = this.dirEn[k] || new Set();
+              for (const nuevaDir of ["H", "V"]) {
+                if (dirsExistentes.has(nuevaDir)) continue;
+                const r = nuevaDir === "H" ? er : er - i;
+                const c = nuevaDir === "H" ? ec - i : ec;
+                if (this.cabe(word, r, c, nuevaDir)) {
+                  candidatos.push([r, c, nuevaDir]);
+                }
+              }
+            }
+          }
+          if (candidatos.length === 0) return false;
+          const [r, c, d] =
+            candidatos[Math.floor(Math.random() * candidatos.length)];
+          this.colocar(word, r, c, d, pista);
+          return true;
+        }
+      }
+
+      function construirDataDesdeConstructor(cw) {
+        const claves = Object.keys(cw.grid);
+        const filasArr = claves.map((k) => Number(k.split(",")[0]));
+        const colsArr = claves.map((k) => Number(k.split(",")[1]));
+        const minr = Math.min(...filasArr),
+          minc = Math.min(...colsArr);
+        const maxr = Math.max(...filasArr),
+          maxc = Math.max(...colsArr);
+
+        const gridNorm = {};
+        claves.forEach((k) => {
+          const [r, c] = k.split(",").map(Number);
+          gridNorm[clave(r - minr, c - minc)] = cw.grid[k];
+        });
+
+        const filas = maxr - minr + 1,
+          cols = maxc - minc + 1;
+
+        function tiene(r, c) {
+          return gridNorm[clave(r, c)] !== undefined;
+        }
+
+        const starts = {};
+        for (let r = 0; r < filas; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (!tiene(r, c)) continue;
+            const esAcross = !tiene(r, c - 1) && tiene(r, c + 1);
+            const esDown = !tiene(r - 1, c) && tiene(r + 1, c);
+            if (esAcross || esDown) starts[clave(r, c)] = true;
+          }
+        }
+        const numeros = {};
+        let n = 1;
+        for (let r = 0; r < filas; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (starts[clave(r, c)]) {
+              numeros[clave(r, c)] = n;
+              n++;
+            }
+          }
+        }
+
+        const clues_h = [],
+          clues_v = [];
+        cw.words.forEach((w) => {
+          const r = w.fila - minr,
+            c = w.col - minc;
+          const num = numeros[clave(r, c)];
+          const entry = {
+            num,
+            texto: w.texto,
+            fila: r,
+            col: c,
+            dir: w.dir,
+            pista: w.pista,
+            len: w.len,
+          };
+          (w.dir === "H" ? clues_h : clues_v).push(entry);
+        });
+        clues_h.sort((a, b) => a.num - b.num);
+        clues_v.sort((a, b) => a.num - b.num);
+
+        return { filas, cols, grid: gridNorm, numeros, clues_h, clues_v };
+      }
+
+      window.ConstructorCrucigrama = ConstructorCrucigrama;
+      window.BANCO_PALABRAS = BANCO_PALABRAS;
+
+      function generarCrucigrama() {
+        let mejor = null;
+        for (let intento = 0; intento < 10; intento++) {
+          const cw = new ConstructorCrucigrama();
+          const barajado = barajar(BANCO_PALABRAS);
+          // semilla: primera palabra larga (>=7) del mazo barajado, para buen anclaje
+          let idxSemilla = barajado.findIndex((w) => w[0].length >= 7);
+          if (idxSemilla < 0) idxSemilla = 0;
+          const semilla = barajado[idxSemilla];
+          cw.colocar(semilla[0], 0, 0, "H", semilla[1]);
+
+          for (let i = 0; i < barajado.length; i++) {
+            if (i === idxSemilla) continue;
+            if (cw.words.length >= 34) break; // limite razonable de palabras
+            cw.intentarColocarAuto(barajado[i][0], barajado[i][1]);
+          }
+
+          if (!mejor || cw.words.length > mejor.words.length) mejor = cw;
+          if (cw.words.length >= 24) break; // buen tamaño logrado, no seguir intentando
+        }
+        return construirDataDesdeConstructor(mejor);
+      }
+
+      /* ============================================================
+   ESTADO Y RENDERIZADO DEL JUEGO
+   ============================================================ */
+
+      let DATA = null;
+      let todasPalabras = [];
+      let indice = {};
+      let inputs = {};
+      let direccionActual = "H";
+      let palabraActual = null;
+      let celdaActivaKey = null;
+
+      function iniciarJuego(data) {
+        DATA = data;
+        DATA.clues_h.forEach((w) => (w.celdas = celdasDe(w)));
+        DATA.clues_v.forEach((w) => (w.celdas = celdasDe(w)));
+        todasPalabras = [...DATA.clues_h, ...DATA.clues_v];
+
+        indice = {};
+        todasPalabras.forEach((w) => {
+          w.celdas.forEach(([r, c]) => {
+            const k = clave(r, c);
+            if (!indice[k]) indice[k] = {};
+            indice[k][w.dir] = w;
+          });
+        });
+
+        direccionActual = "H";
+        palabraActual = null;
+        celdaActivaKey = null;
+        inputs = {};
+
+        renderGrid();
+        renderClues();
+
+        document.getElementById("resultado").classList.remove("show");
+        document.getElementById("clue-banner").textContent =
+          "Toque una casilla o una pista para comenzar";
+        document.getElementById("info-tamano").textContent =
+          `${todasPalabras.length} palabras · grilla ${DATA.filas}×${DATA.cols}`;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        window.DATA = DATA;
+        window.todasPalabras = todasPalabras;
+        window.indice = indice;
+        window.inputs = inputs;
+      }
+
+      function renderGrid() {
+        const gridEl = document.getElementById("grid");
+        gridEl.innerHTML = "";
+        gridEl.style.gridTemplateColumns = `repeat(${DATA.cols}, 32px)`;
+        gridEl.style.gridTemplateRows = `repeat(${DATA.filas}, 32px)`;
+
+        for (let r = 0; r < DATA.filas; r++) {
+          for (let c = 0; c < DATA.cols; c++) {
+            const k = clave(r, c);
+            const div = document.createElement("div");
+            if (DATA.grid[k]) {
+              div.className = "celda blanca";
+              div.dataset.r = r;
+              div.dataset.c = c;
+              const num = DATA.numeros[k];
+              if (num) {
+                const spanNum = document.createElement("span");
+                spanNum.className = "num";
+                spanNum.textContent = num;
+                div.appendChild(spanNum);
+              }
+              const input = document.createElement("input");
+              input.maxLength = 1;
+              input.dataset.r = r;
+              input.dataset.c = c;
+              input.autocomplete = "off";
+              input.inputMode = "text";
+              div.appendChild(input);
+              inputs[k] = input;
+
+              input.addEventListener("focus", () => seleccionarCelda(r, c));
+              input.addEventListener("click", () => {
+                if (celdaActivaKey === k) alternarDireccion(r, c);
+                seleccionarCelda(r, c);
+              });
+              input.addEventListener("input", (e) => {
+                e.target.value = e.target.value
+                  .toUpperCase()
+                  .replace(/[^A-ZÑ]/g, "");
+                limpiarEstadoCelda(r, c);
+                if (e.target.value) moverSiguiente(r, c);
+                actualizarResueltos();
+                verificarVictoria();
+              });
+              input.addEventListener("keydown", (e) => manejarTeclado(e, r, c));
+            } else {
+              div.className = "celda";
+            }
+            gridEl.appendChild(div);
+          }
+        }
+      }
+
+      function renderClues() {
+        const listaH = document.getElementById("lista-h");
+        const listaV = document.getElementById("lista-v");
+        listaH.innerHTML = "";
+        listaV.innerHTML = "";
+
+        function construirLista(lista, cont) {
+          lista.forEach((w) => {
+            const div = document.createElement("div");
+            div.className = "clue-item";
+            div.id = "clue-" + w.dir + w.num;
+            div.innerHTML = `<b>${w.num}.</b> ${w.pista} <span style="color:#999">(${w.len})</span>`;
+            div.onclick = () => irAPalabra(w);
+            cont.appendChild(div);
+          });
+        }
+        construirLista(DATA.clues_h, listaH);
+        construirLista(DATA.clues_v, listaV);
+      }
+
+      function limpiarEstadoCelda(r, c) {
+        const k = clave(r, c);
+        const div = inputs[k].parentElement;
+        div.classList.remove("correcta", "incorrecta");
+      }
+
+      function palabraEn(r, c, dir) {
+        const k = clave(r, c);
+        return (indice[k] && indice[k][dir]) || null;
+      }
+
+      function seleccionarCelda(r, c) {
+        const k = clave(r, c);
+        celdaActivaKey = k;
+        let w = palabraEn(r, c, direccionActual);
+        if (!w) {
+          direccionActual = direccionActual === "H" ? "V" : "H";
+          w = palabraEn(r, c, direccionActual);
+        }
+        palabraActual = w;
+        window.palabraActual = w;
+        pintarSeleccion(r, c);
+        mostrarClueBanner();
+      }
+
+      function alternarDireccion(r, c) {
+        const otra = direccionActual === "H" ? "V" : "H";
+        if (palabraEn(r, c, otra)) {
+          direccionActual = otra;
+        }
+      }
+
+      function pintarSeleccion(rFoco, cFoco) {
+        document
+          .querySelectorAll(".celda.activa, .celda.foco")
+          .forEach((el) => el.classList.remove("activa", "foco"));
+        document
+          .querySelectorAll(".clue-item.seleccionado")
+          .forEach((el) => el.classList.remove("seleccionado"));
+        if (palabraActual) {
+          palabraActual.celdas.forEach(([r, c]) => {
+            const inp = inputs[clave(r, c)];
+            if (inp) inp.parentElement.classList.add("activa");
+          });
+          const item = document.getElementById(
+            "clue-" + palabraActual.dir + palabraActual.num,
+          );
+          if (item) item.classList.add("seleccionado");
+        }
+        const focoInp = inputs[clave(rFoco, cFoco)];
+        if (focoInp) focoInp.parentElement.classList.add("foco");
+      }
+
+      function mostrarClueBanner() {
+        const banner = document.getElementById("clue-banner");
+        if (!palabraActual) {
+          banner.textContent = "Toque una casilla o una pista para comenzar";
+          return;
+        }
+        const flecha = palabraActual.dir === "H" ? "→" : "↓";
+        banner.innerHTML = `<b>${palabraActual.num} ${flecha}</b> &nbsp; ${palabraActual.pista} &nbsp; <span style="color:#999">(${palabraActual.len} letras)</span>`;
+      }
+
+      function moverSiguiente(r, c) {
+        if (!palabraActual) return;
+        const idx = palabraActual.celdas.findIndex(
+          ([rr, cc]) => rr === r && cc === c,
+        );
+        if (idx >= 0 && idx < palabraActual.celdas.length - 1) {
+          const [nr, nc] = palabraActual.celdas[idx + 1];
+          const inp = inputs[clave(nr, nc)];
+          if (inp) inp.focus();
+        }
+      }
+
+      function moverAnterior(r, c) {
+        if (!palabraActual) return;
+        const idx = palabraActual.celdas.findIndex(
+          ([rr, cc]) => rr === r && cc === c,
+        );
+        if (idx > 0) {
+          const [pr, pc] = palabraActual.celdas[idx - 1];
+          const inp = inputs[clave(pr, pc)];
+          if (inp) inp.focus();
+        }
+      }
+
+      function manejarTeclado(e, r, c) {
+        const k = clave(r, c);
+        const esLetra = e.key.length === 1 && /^[a-zA-ZñÑ]$/.test(e.key);
+        if (esLetra) {
+          // Se maneja aquí directamente (en vez de esperar el evento 'input') porque
+          // al sobrescribir una casilla que ya tiene una letra, el límite de 1
+          // carácter del cuadro a veces bloquea el reemplazo y el evento 'input'
+          // no llega a dispararse, dejando la letra sin avanzar a la siguiente casilla.
+          e.preventDefault();
+          const inp = inputs[k];
+          inp.value = e.key.toUpperCase();
+          limpiarEstadoCelda(r, c);
+          moverSiguiente(r, c);
+          actualizarResueltos();
+          verificarVictoria();
+          return;
+        }
+        if (e.key === "Backspace") {
+          if (!inputs[k].value) {
+            e.preventDefault();
+            moverAnterior(r, c);
+            const idx = palabraActual.celdas.findIndex(
+              ([rr, cc]) => rr === r && cc === c,
+            );
+            if (idx > 0) {
+              const [pr, pc] = palabraActual.celdas[idx - 1];
+              inputs[clave(pr, pc)].value = "";
+              limpiarEstadoCelda(pr, pc);
+            }
+          }
+        } else if (e.key === "ArrowRight") {
+          e.preventDefault();
+          const inp = inputs[clave(r, c + 1)];
+          if (inp) {
+            direccionActual = "H";
+            inp.focus();
+          }
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          const inp = inputs[clave(r, c - 1)];
+          if (inp) {
+            direccionActual = "H";
+            inp.focus();
+          }
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault();
+          const inp = inputs[clave(r + 1, c)];
+          if (inp) {
+            direccionActual = "V";
+            inp.focus();
+          }
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          const inp = inputs[clave(r - 1, c)];
+          if (inp) {
+            direccionActual = "V";
+            inp.focus();
+          }
+        }
+      }
+
+      function irAPalabra(w) {
+        direccionActual = w.dir;
+        const [r, c] = w.celdas[0];
+        inputs[clave(r, c)].focus();
+      }
+
+      function actualizarResueltos() {
+        todasPalabras.forEach((w) => {
+          const completa = w.celdas.every(([r, c]) => {
+            const inp = inputs[clave(r, c)];
+            return inp && inp.value === DATA.grid[clave(r, c)];
+          });
+          const item = document.getElementById("clue-" + w.dir + w.num);
+          if (item) item.classList.toggle("resuelto", completa);
+        });
+      }
+
+      function revisarTodo() {
+        Object.keys(inputs).forEach((k) => {
+          const inp = inputs[k];
+          const div = inp.parentElement;
+          div.classList.remove("correcta", "incorrecta");
+          if (!inp.value) return;
+          if (inp.value === DATA.grid[k]) {
+            div.classList.add("correcta");
+          } else {
+            div.classList.add("incorrecta");
+          }
+        });
+        actualizarResueltos();
+        verificarVictoria();
+      }
+
+      function darPista() {
+        let w = palabraActual;
+        if (!w) {
+          w = todasPalabras.find((w) =>
+            w.celdas.some(
+              ([r, c]) => inputs[clave(r, c)].value !== DATA.grid[clave(r, c)],
+            ),
+          );
+          if (!w) return;
+        }
+        const vacia = w.celdas.find(
+          ([r, c]) => inputs[clave(r, c)].value !== DATA.grid[clave(r, c)],
+        );
+        if (vacia) {
+          const [r, c] = vacia;
+          const k = clave(r, c);
+          inputs[k].value = DATA.grid[k];
+          inputs[k].parentElement.classList.remove("incorrecta");
+          inputs[k].parentElement.classList.add("correcta");
+        }
+        actualizarResueltos();
+        verificarVictoria();
+      }
+
+      function verificarVictoria() {
+        const completo = Object.keys(DATA.grid).every(
+          (k) => inputs[k] && inputs[k].value === DATA.grid[k],
+        );
+        document.getElementById("resultado").classList.toggle("show", completo);
+        if (completo) {
+          document
+            .getElementById("resultado")
+            .scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+
+      function reiniciar() {
+        Object.values(inputs).forEach((inp) => {
+          inp.value = "";
+          inp.parentElement.classList.remove("correcta", "incorrecta");
+        });
+        document
+          .querySelectorAll(".clue-item.resuelto")
+          .forEach((el) => el.classList.remove("resuelto"));
+        document.getElementById("resultado").classList.remove("show");
+        palabraActual = null;
+        document.getElementById("clue-banner").textContent =
+          "Toque una casilla o una pista para comenzar";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function generarPuzzleNuevo() {
+        const boton = document.getElementById("btn-nuevo-puzzle");
+        boton.disabled = true;
+        boton.textContent = "Generando...";
+        setTimeout(() => {
+          const nuevaData = generarCrucigrama();
+          iniciarJuego(nuevaData);
+          boton.disabled = false;
+          boton.textContent = "Generar puzzle nuevo";
+        }, 10);
+      }
+
+      /* iniciar con el puzzle curado */
+      iniciarJuego(DATA_INICIAL);
+    </script>
+  </body>
+</html>
